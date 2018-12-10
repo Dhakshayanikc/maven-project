@@ -27,7 +27,7 @@
                parallel{
                     stage ('Deploy to Staging'){
                         steps {
-                            bat "pscp -scp -i /users/dchuda/Downloads/test.pem **/target/*.war ec2-user@${params.tomcat_dev}:/var/lib/tomcat7/webapps"
+                            bat "pscp -scp -i /users/dchuda/Downloads/test.pem /Jenkins/**/target/*.war ec2-user@${params.tomcat_dev}:/var/lib/tomcat7/webapps"
                         }
                     }
      
