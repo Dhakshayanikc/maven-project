@@ -1,38 +1,42 @@
-pipeline {
-    agent any
+    pipeline {
+        agent any
+        
+        parameters { 
+             string(name: 'tomcat_dev', defaultValue: '18.216.174.213', description: 'Staging Server')
+             //string(name: 'tomcat_prod', defaultValue: '34.209.233.6', description: 'Production Server')
+        } 
+     
+        triggers {
+             pollSCM('* * * * *') // Polling Source Control
+         }
+     
     stages{
-        stage('Build'){
-            steps {
-                bat 'mvn clean package'
-            }
-            post {
-                success {
-                    echo 'Now Archiving...'
-                    archiveArtifacts artifacts: '**/target/*.war'
+            stage('Build'){
+                steps {
+                    bat 'mvn clean package'
+                }
+                post {
+                    success {
+                        echo 'Now Archiving...'
+                        archiveArtifacts artifacts: '**/target/*.war'
+                    }
                 }
             }
+     
+            stage ('Deployments'){
+               // parallel{
+                    stage ('Deploy to Staging'){
+                        steps {
+                            bat "winscp -i /home/jenkins/tomcat-demo.pem **/target/*.war ec2-user@${params.tomcat_dev}:/var/lib/tomcat7/webapps"
+                        }
+                    }
+     
+                   // stage ("Deploy to Production"){
+                      //  steps {
+                       //     bat "winscp -i /home/jenkins/tomcat-demo.pem **/target/*.war ec2-user@${params.tomcat_prod}:/var/lib/tomcat7/webapps"
+                       // }
+                  //  }
+               // }
+            }
         }
-		stage('Deploying to staging') {
-			steps{
-				build job:'DeployingTomcat'
-			}
-		}
-		
-		stage('Deploying to prod') {
-			steps{
-				timeout(time:5,unit:'DAYS'){
-					input message:'APrrove production deployment'
-				}
-				build job:'deploy-to-prod'
-			}
-			post{
-				success{
-					echo 'code deployed successsfully'
-				}
-				failure {
-					echo 'code deployment failed'
-				}
-			}
-		}
     }
-}
