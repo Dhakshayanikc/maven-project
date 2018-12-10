@@ -12,5 +12,10 @@ pipeline {
                 }
             }
         }
+		stage('Deploying to staging') {
+			steps{
+				build job:'DeployingTomcat'
+			}
+		}
     }
 }
